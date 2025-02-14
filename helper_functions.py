@@ -185,6 +185,13 @@ def fft(node, plot=False, name="_____"):
 
   return fft_data
      
+def correct_nodes_extractor():
+  df2 = edf_file_extractor("/content/chb24_01.edf")
+
+  df_extracted2 = df2[['FP1-F7', 'F7-T7','T7-P7','P7-O1','FP2-F8','F8-T8','T8-P8','P8-O2']]
+
+  return df_extracted2
+
 
 def preprocessing_EEG_signal(node, plot=False, name="______"):
   """
