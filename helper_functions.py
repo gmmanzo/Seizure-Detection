@@ -1,5 +1,6 @@
-import tensor_flow as tf
+import tensorflow as tf
 import numpy as np
+pip install pyedflib 
 
 def extract_features(windows):
     features = {}
