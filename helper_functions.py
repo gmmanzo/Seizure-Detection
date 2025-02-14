@@ -1,3 +1,5 @@
+import tensor_flow as tf
+import numpy as np
 
 def extract_features(windows):
     features = {}
