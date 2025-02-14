@@ -1,8 +1,5 @@
-import tensorflow as tf
-import numpy as np
-pip install pyedflib 
-
 def extract_features(windows):
+    import numpy as np
     features = {}
 
     # Time-domain features
@@ -23,6 +20,7 @@ def edf_file_extractor(file_path):
   Opens an EDF file and returns its contents in the form of a Data Frame
   """
   # Load all data
+  pip install pyedflib 
   import pyedflib # Used for edf files
   import pandas as pd
 
