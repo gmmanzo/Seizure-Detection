@@ -216,14 +216,28 @@ def fft(node, plot=False, name="_____"):
 
   return fft_data
      
-def correct_nodes_extractor(file_path):
-  
+def correct_nodes_extractor(file_path, associated_summary_file_path):
+  import numpy as np
+  import os
   df2 = edf_file_extractor(file_path)
   
-
   df_extracted2 = df2[['FP1-F7', 'F7-T7','T7-P7','P7-O1','FP2-F8','F8-T8','T8-P8','P8-O2']]
+  df_extracted2['Time'] = np.arange(len(df_extracted2))/256
 
-  return df_extracted2
+  counter = 0
+  for filename in seizure_time_parser(associated_summary_file_path):
+    if(filename == os.path.basename(file_path)):
+      for interval in seizure_time_parser(associated_summary_file_path)[filename]:
+        start_time, end_time = interval
+        df_extracted2['Label'] = 0
+        # Set labels to 1 for seizure intervals
+        
+        df_extracted2.loc[(df_extracted2['Time'] >= start_time) & (df_extracted2['Time'] <= end_time), 'Label'] = 1
+        break
+      break
+    else:
+      df_extracted2['Label'] = 0
+  return df_extracted2.loc[:, ~df_extracted2.columns.duplicated(keep='first')]
 
 
 def preprocessing_EEG_signal(node, plot=False, name="______"):
@@ -231,3 +245,26 @@ def preprocessing_EEG_signal(node, plot=False, name="______"):
   Take in a node, which refers to the speicific EEG signal.
   Filters the data.
   """
+
+
+def data_splitter(df, column_name, training_size=0.8):
+  """
+  Splits data based on DataFrame and column_name and returns it in the following format:
+  X_train, X_test, y_train, y_test
+  """
+  #Create train and test splits the right way for time series data
+  split_size = int(training_size*len(time)) # 80% train, 20% test
+
+  # Convert signals_new to a NumPy array for proper slicing
+  signals_new = np.array(df[column_name])  # Ensure it's a 2D array
+
+  # Splitting time (same for both train and test)
+  X_train, X_test = df['Time'][:split_size], df['Time'][split_size:]
+
+  # Splitting signals for FP1-F7 and FP1-F3
+  y_train = signals_new[:split_size]  # First 80% of each signal
+  y_test = signals_new[split_size:]  # Last 20% of each signal
+
+  len(X_train), len(X_test), len(y_train), len(y_test)
+
+  return X_train, X_test, y_train, y_test
