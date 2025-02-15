@@ -16,32 +16,64 @@ def extract_features(windows):
      
 
 def edf_file_extractor(file_path):
-  """
-  Opens an EDF file and returns its contents in the form of a Data Frame
-  """
-  # Load all data 
-  import pyedflib # Used for edf files
-  import pandas as pd
+    import pyedflib
+    import os
+    import pandas as pd
+    """
+    Opens an EDF file and returns its contents in the form of a DataFrame.
+    If the file is already open, it attempts to open it in read-only mode.
+    """
+    try:
+        # Check if the file exists
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"File not found: {file_path}")
 
-  # Load the EDF file
-  edf = pyedflib.EdfReader(file_path, check_file_size=False)
+        # Try opening the EDF file
+        edf = pyedflib.EdfReader(file_path, check_file_size=False)
+    
+    except OSError as e:
+        # Handle file being already open or locked
+        if "Resource temporarily unavailable" in str(e) or "Permission denied" in str(e):
+            print(f"Warning: EDF file '{file_path}' is already open elsewhere. Attempting to open in read-only mode...")
+            try:
+                edf = pyedflib.EdfReader(file_path, read_only=True)
+                print(f"Opened EDF file in read-only mode: {file_path}")
+            except Exception as e:
+                print(f"Error reopening EDF file in safe mode: {e}")
+                return None
+        else:
+            print(f"Unexpected error while opening EDF file: {e}")
+            return None
 
-  # Extract signal labels
-  signal_labels = edf.getSignalLabels()
+    except Exception as e:
+        print(f"General error: {e}")
+        return None
 
-  # Extract signal data
-  signals = []
-  for i in range(edf.signals_in_file):
-      signals.append(edf.readSignal(i))
+    try:
+        # Extract signal labels
+        signal_labels = edf.getSignalLabels()
 
-  # Create a DataFrame
-  df = pd.DataFrame(signals).transpose()
-  df.columns = signal_labels
+        # Extract signal data
+        signals = []
+        for i in range(edf.signals_in_file):
+            signals.append(edf.readSignal(i))
 
-  # Close the EDF file
-  edf.close()
+        # Create a DataFrame
+        df = pd.DataFrame(signals).transpose()
+        df.columns = signal_labels
 
-  return df
+    except Exception as e:
+        print(f"Error processing EDF file: {e}")
+        df = None  # Return None if there is a processing error
+
+    finally:
+        # Ensure the EDF file is closed properly
+        try:
+            edf.close()
+        except Exception as e:
+            print(f"Error closing EDF file: {e}")
+
+    return df
      
 
 def seizure_time_parser(txt_file_path):
@@ -184,8 +216,10 @@ def fft(node, plot=False, name="_____"):
 
   return fft_data
      
-def correct_nodes_extractor():
-  df2 = edf_file_extractor("/content/chb24_01.edf")
+def correct_nodes_extractor(file_path):
+  
+  df2 = edf_file_extractor(file_path)
+  
 
   df_extracted2 = df2[['FP1-F7', 'F7-T7','T7-P7','P7-O1','FP2-F8','F8-T8','T8-P8','P8-O2']]
 
