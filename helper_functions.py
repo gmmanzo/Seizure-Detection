@@ -19,8 +19,7 @@ def edf_file_extractor(file_path):
   """
   Opens an EDF file and returns its contents in the form of a Data Frame
   """
-  # Load all data
-  pip install pyedflib 
+  # Load all data 
   import pyedflib # Used for edf files
   import pandas as pd
 
